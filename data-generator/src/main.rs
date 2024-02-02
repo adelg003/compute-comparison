@@ -189,7 +189,7 @@ fn generate_tb_data(
         .enumerate()
         .try_for_each(|(index, tb): (usize, LazyFrame)| {
             // Path we will write geneated TB to
-            let file_name = format!("gl_{:0>4}.parquet", index);
+            let file_name = format!("tb_{:0>4}.parquet", index);
             let tb_path: PathBuf = tb_folder.join(file_name);
 
             // Write TB out.

@@ -1,0 +1,12 @@
+# Compile image
+FROM rust:latest as builder
+WORKDIR /usr/src/myapp
+COPY ./Cargo.* .
+COPY ./src ./src
+RUN cargo install --path .
+
+# Copy compiled binary to runtime image
+FROM debian:latest
+WORKDIR /opt/data-generator
+COPY --from=builder /usr/local/cargo/bin/data-generator /usr/local/bin/data-generator
+ENTRYPOINT ["data-generator"]
