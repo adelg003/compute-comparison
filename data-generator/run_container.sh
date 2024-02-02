@@ -10,10 +10,13 @@ echo
 echo "Running Data-Generator"
 podman run \
   --rm \
+  --cpus=4 \
+  --memory=8G \
   --volume ./seed_data:/opt/data-generator/seed_data:z \
-  --volume ./gitignore:/opt/data-generator/gitignore:z \
+  --volume ../gitignore/data:/opt/data-generator/gitignore:z \
   data-generator:latest \
   --gl=seed_data/general_ledger_235_469.parquet \
   --tb=seed_data/trail_balance_13_788.parquet \
   --number=4247 \
+  --chunks=10 \
   --output=gitignore

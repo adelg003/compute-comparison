@@ -1,8 +1,9 @@
 use clap::Parser;
 use color_eyre::eyre;
 use polars::prelude::{
-    col, concat_str, DataType, Field, GetOutput, LazyFrame, PolarsError, Schema, Series,
+    col, concat, concat_str, DataType, Field, GetOutput, LazyFrame, PolarsError, Schema, Series,
 };
+use rayon::prelude::*;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -24,6 +25,9 @@ struct CliArgs {
     /// Path to write the stacks TB and GL to
     #[arg(long = "output")]
     output_path: PathBuf,
+    /// How many stacks should be in each output file?
+    #[arg(long = "chunks", default_value_t = 10)]
+    chunks: usize,
 }
 
 fn main() -> Result<(), eyre::Error> {
@@ -35,14 +39,22 @@ fn main() -> Result<(), eyre::Error> {
 
     // Stack TB data
     println!("Generating TB Data");
-    let tb_folder: PathBuf =
-        generate_tb_data(&args.tb_path, &args.number_of_stacks, &args.output_path)?;
+    let tb_folder: PathBuf = generate_tb_data(
+        &args.tb_path,
+        &args.number_of_stacks,
+        &args.output_path,
+        &args.chunks,
+    )?;
     println!("TB Data is generated at: {}\n", &tb_folder.display());
 
     // Stack GL data
     println!("Generating GL Data");
-    let gl_folder: PathBuf =
-        generate_gl_data(&args.gl_path, &args.number_of_stacks, &args.output_path)?;
+    let gl_folder: PathBuf = generate_gl_data(
+        &args.gl_path,
+        &args.number_of_stacks,
+        &args.output_path,
+        &args.chunks,
+    )?;
     println!("GL Data is generated at: {}\n", &gl_folder.display());
 
     Ok(())
@@ -53,6 +65,7 @@ fn generate_gl_data(
     input_path: &Path,
     number_of_stacks: &usize,
     output_path: &Path,
+    chunk_size: &usize,
 ) -> Result<PathBuf, PolarsError> {
     // Read GL Seed
     let gl: LazyFrame = LazyFrame::scan_parquet(input_path, Default::default())?;
@@ -116,18 +129,27 @@ fn generate_gl_data(
     }
     fs::create_dir_all(&gl_folder)?;
 
+    // Chunck Lazyframes to play nicer with parallisim
+    let chunked_gls: Vec<&[LazyFrame]> = gls.chunks(*chunk_size).collect();
+
     // Collect Lazyframes and write to disk
-    gls.into_iter()
-        .enumerate()
-        .try_for_each(|(index, gl): (usize, LazyFrame)| {
+    chunked_gls.into_par_iter().enumerate().try_for_each(
+        |(index, gls): (usize, &[LazyFrame])| {
             // Path we will write generated GL to
             let file_name = format!("gl_{:0>4}.parquet", index);
             let gl_path: PathBuf = gl_folder.join(file_name);
 
+            // Stack all our Lazyframe Chunks into one bigger chunck
+            let gl = concat(gls, Default::default())?;
+
             // Write GL out.
-            println!("GL Data - Generating: {}", &gl_path.display());
-            gl.sink_parquet(gl_path.clone(), Default::default())
-        })?;
+            println!("GL Data - Generating - Start: {}", &gl_path.display());
+            gl.sink_parquet(gl_path.clone(), Default::default())?;
+            println!("GL Data - Generating - Done : {}", &gl_path.display());
+
+            Ok::<(), PolarsError>(())
+        },
+    )?;
 
     Ok(gl_folder)
 }
@@ -137,6 +159,7 @@ fn generate_tb_data(
     input_path: &Path,
     number_of_stacks: &usize,
     output_path: &Path,
+    chunk_size: &usize,
 ) -> Result<PathBuf, PolarsError> {
     // Read TB Seed
     let tb: LazyFrame = LazyFrame::scan_parquet(input_path, Default::default())?;
@@ -184,18 +207,27 @@ fn generate_tb_data(
     }
     fs::create_dir_all(&tb_folder)?;
 
+    // Chunck Lazyframes to play nicer with parallisim
+    let chunked_tbs: Vec<&[LazyFrame]> = tbs.chunks(*chunk_size).collect();
+
     // Collect Lazyframes and write to disk
-    tbs.into_iter()
-        .enumerate()
-        .try_for_each(|(index, tb): (usize, LazyFrame)| {
+    chunked_tbs.into_par_iter().enumerate().try_for_each(
+        |(index, tbs): (usize, &[LazyFrame])| {
             // Path we will write geneated TB to
             let file_name = format!("tb_{:0>4}.parquet", index);
             let tb_path: PathBuf = tb_folder.join(file_name);
 
+            // Stack all our Lazyframe Chunks into one bigger chunck
+            let tb = concat(tbs, Default::default())?;
+
             // Write TB out.
-            println!("TB Data - Generating: {}", &tb_path.display());
-            tb.sink_parquet(tb_path.clone(), Default::default())
-        })?;
+            println!("TB Data - Generating - Start: {}", &tb_path.display());
+            tb.sink_parquet(tb_path.clone(), Default::default())?;
+            println!("TB Data - Generating - Done : {}", &tb_path.display());
+
+            Ok::<(), PolarsError>(())
+        },
+    )?;
 
     Ok(tb_folder)
 }
