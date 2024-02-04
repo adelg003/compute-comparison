@@ -2,6 +2,6 @@
 # Build and run rust code to generate unbalances and completness test
 cargo run --release -- \
   --gl=../gitignore/data/gl.parquet/gl_00*.parquet \
-  --tb=../gitignore/data/tb.parquet/tb_00*.parquet \
+  --tb=../gitignore/data/tb.parquet/tb_*.parquet \
   --output=results
-# Dont run wide open our will run out of RAM
+# Don't run GL wide open since we will run out of RAM

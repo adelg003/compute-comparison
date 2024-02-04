@@ -54,7 +54,6 @@ fn main() -> Result<(), eyre::Error> {
             &mut unbalanced,
             &args.output_path.join("unbalanced.parquet"),
         )?;
-        println!("Unbalanced results writen");
     }
 
     // Run Completeness test and write the results to Parquet. Also make sure to remove Dataframe from
@@ -67,7 +66,6 @@ fn main() -> Result<(), eyre::Error> {
             &mut completeness,
             &args.output_path.join("completeness.parquet"),
         )?;
-        println!("Completeness results writen");
     }
 
     Ok(())
