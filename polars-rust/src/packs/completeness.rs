@@ -29,6 +29,7 @@ pub fn completeness_test(gl: &LazyFrame, tb: &LazyFrame) -> LazyFrame {
         tb_total_by_account,
         &gl_groupby_columns,
         &tb_groupby_columns,
+        //TODO Rounding kills streaming, but so do Outer Joins, so just got to live with this one
         JoinArgs::new(JoinType::Outer { coalesce: true }),
     );
 

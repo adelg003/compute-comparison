@@ -6,12 +6,15 @@ pub fn unbalanced_journal_entries_test(gl: &LazyFrame) -> LazyFrame {
     let je_totals = gl
         .clone()
         .group_by([col("GL_Journal_ID")])
-        .agg([col("GL_Local_Amount").sum().round(2)]);
+        //TODO Adding the round funtion breaks data streaming, for now.
+        //.agg([col("GL_Local_Amount").sum().round(2)]);
+        .agg([col("GL_Local_Amount").sum()]);
 
     // Filter for unbalanced JEs
     let unbalanced_je = je_totals
-        // Adding the round funtion breaks data streaming, for now.
-        .filter(col("GL_Local_Amount").abs().gt(0));
+        //TODO Adding the round funtion breaks data streaming, for now.
+        //.filter(col("GL_Local_Amount").abs().gt(0));
+        .filter(col("GL_Local_Amount").abs().gt(0.00001));
 
     // Pull all lines for unbalanced JEs
     let unbalanced_je_lines = gl.clone().join(

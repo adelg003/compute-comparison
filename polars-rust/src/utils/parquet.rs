@@ -7,6 +7,7 @@ pub fn read_parquet(path: &Path) -> Result<LazyFrame, PolarsError> {
 }
 
 /// Write results to Parquet
+//TODO Remove once streaming is complete enough
 pub fn write_parquet(df: &mut DataFrame, path: &Path) -> Result<u64, PolarsError> {
     let mut file = File::create(path)?;
     ParquetWriter::new(&mut file).finish(df)

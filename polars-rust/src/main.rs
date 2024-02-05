@@ -9,7 +9,6 @@ use crate::{
 use clap::Parser;
 use color_eyre::eyre;
 use packs::{completeness_test, unbalanced_journal_entries_test};
-use polars::prelude::{DataFrame, LazyFrame};
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
@@ -38,35 +37,32 @@ fn main() -> Result<(), eyre::Error> {
     let tb = read_tb(&args.tb_path)?;
 
     // Plan how to run the reports
-    let unbalanced: LazyFrame = unbalanced_journal_entries_test(&gl);
-    let completeness: LazyFrame = completeness_test(&gl, &tb);
+    let unbalanced = unbalanced_journal_entries_test(&gl);
+    let completeness = completeness_test(&gl, &tb);
 
     // Reset the output folder location
     reset_output(&args.output_path)?;
 
-    // Run Unbalanced test and write the results to Parquet. Also make sure to remove Dataframe from
-    // memory before next test runs.
-    {
-        println!("Running Unbalanced test");
-        let mut unbalanced: DataFrame = unbalanced.collect()?;
-        println!("Writing Unbalanced results");
-        write_parquet(
-            &mut unbalanced,
-            &args.output_path.join("unbalanced.parquet"),
-        )?;
-    }
+    // Run Unbalanced and write results
+    println!("Running Unbalanced test");
+    unbalanced.sink_parquet(
+        args.output_path.join("unbalanced.parquet"),
+        Default::default(),
+    )?;
 
-    // Run Completeness test and write the results to Parquet. Also make sure to remove Dataframe from
-    // memory before next test runs.
-    {
-        println!("Running Completeness test");
-        let mut completeness: DataFrame = completeness.collect()?;
-        println!("Writing Completeness results");
-        write_parquet(
-            &mut completeness,
-            &args.output_path.join("completeness.parquet"),
-        )?;
-    }
+    // Run Completeness and write results
+    println!("Running Completeness test");
+    //TODO Cant Steam as outer Joins can not be streamed yet
+    let mut completeness = completeness.collect()?;
+    write_parquet(
+        &mut completeness,
+        &args.output_path.join("completeness.parquet"),
+    )?;
+
+    //completeness.sink_parquet(
+    //    args.output_path.join("completeness.parquet"),
+    //    Default::default(),
+    //)?;
 
     Ok(())
 }
