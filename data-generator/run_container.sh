@@ -17,6 +17,6 @@ podman run \
   data-generator:latest \
   --gl=seed_data/general_ledger_235_469.parquet \
   --tb=seed_data/trail_balance_13_788.parquet \
-  --number=3500 \
+  --number=4247 \
   --chunks=10 \
   --output=gitignore

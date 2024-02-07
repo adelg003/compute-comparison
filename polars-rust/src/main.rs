@@ -2,10 +2,7 @@ mod io;
 mod packs;
 mod utils;
 
-use crate::{
-    io::{read_gl, read_tb, reset_output},
-    utils::write_parquet,
-};
+use crate::io::{read_gl, read_tb, reset_output};
 use clap::Parser;
 use color_eyre::eyre;
 use packs::{completeness_test, unbalanced_journal_entries_test};
@@ -52,17 +49,10 @@ fn main() -> Result<(), eyre::Error> {
 
     // Run Completeness and write results
     println!("Running Completeness test");
-    //TODO Cant Steam as outer Joins can not be streamed yet
-    let mut completeness = completeness.collect()?;
-    write_parquet(
-        &mut completeness,
-        &args.output_path.join("completeness.parquet"),
+    completeness.sink_parquet(
+        args.output_path.join("completeness.parquet"),
+        Default::default(),
     )?;
-
-    //completeness.sink_parquet(
-    //    args.output_path.join("completeness.parquet"),
-    //    Default::default(),
-    //)?;
 
     Ok(())
 }
