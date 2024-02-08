@@ -1,0 +1,12 @@
+# Compile image
+FROM rust:latest as builder
+WORKDIR /usr/src/myapp
+COPY ./Cargo.* .
+COPY ./src ./src
+RUN cargo install --path .
+
+# Copy compiled binary to runtime image
+FROM debian:latest
+WORKDIR /opt/polars-rust
+COPY --from=builder /usr/local/cargo/bin/polars-rust /usr/local/bin/polars-rust
+ENTRYPOINT ["polars-rust"]
