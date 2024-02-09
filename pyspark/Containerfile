@@ -1,0 +1,18 @@
+FROM python:latest
+
+WORKDIR /opt/pyspark
+
+# Dependances (OS)
+RUN apt update
+RUN apt install -y \
+  default-jdk
+
+# Dependances (Python)
+COPY ./requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+# Source Code
+COPY ./src .
+
+# Entrypoint
+ENTRYPOINT ["python", "main.py"]

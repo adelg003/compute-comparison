@@ -1,8 +1,8 @@
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from packs.completeness import completeness_test
-from packs.unbalanced import unbalanced_test
+from packs.completeness import completeness_test  # type: ignore
+from packs.unbalanced import unbalanced_test  # type: ignore
 from pyspark.sql import SparkSession  # type: ignore
 
 
