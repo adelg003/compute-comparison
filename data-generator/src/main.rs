@@ -142,9 +142,18 @@ fn generate_gl_data(
             // Stack all our Lazyframe Chunks into one bigger chunck
             let gl = concat(gls, Default::default())?;
 
+            // Sort our GL to make compressions work alot better
+            let columns = vec![
+                col("GL_Business_Unit_Code"),
+                col("GL_Doc_Number"),
+                col("GL_Fiscal_Year"),
+                col("GL_Line_Number"),
+            ];
+            let gl_sorted = gl.sort_by_exprs(&columns, vec![false; columns.len()], false, false);
+
             // Write GL out.
             println!("GL Data - Generating - Start: {}", &gl_path.display());
-            gl.sink_parquet(gl_path.clone(), Default::default())?;
+            gl_sorted.sink_parquet(gl_path.clone(), Default::default())?;
             println!("GL Data - Generating - Done : {}", &gl_path.display());
 
             Ok::<(), PolarsError>(())
@@ -220,9 +229,17 @@ fn generate_tb_data(
             // Stack all our Lazyframe Chunks into one bigger chunck
             let tb = concat(tbs, Default::default())?;
 
+            // Sort our TB to make compressions work alot better
+            let columns = vec![
+                col("TB_Business_Unit_Code"),
+                col("TB_Fiscal_Year"),
+                col("TB_Account_Number"),
+            ];
+            let tb_sorted = tb.sort_by_exprs(&columns, vec![false; columns.len()], false, false);
+
             // Write TB out.
             println!("TB Data - Generating - Start: {}", &tb_path.display());
-            tb.sink_parquet(tb_path.clone(), Default::default())?;
+            tb_sorted.sink_parquet(tb_path.clone(), Default::default())?;
             println!("TB Data - Generating - Done : {}", &tb_path.display());
 
             Ok::<(), PolarsError>(())

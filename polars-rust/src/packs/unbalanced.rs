@@ -27,14 +27,21 @@ pub fn unbalanced_journal_entries_test(gl: &LazyFrame) -> LazyFrame {
         JoinArgs::new(JoinType::Inner),
     );
 
-    // Filter for just the columns we want on the report
-    unbalanced_je_lines.select([
-        col("GL_Journal_ID"),
-        col("GL_Effective_Date"),
-        col("GL_Line_Number"),
-        col("GL_Account_Number"),
-        col("GL_Local_Amount"),
-    ])
+    // Filter for just the columns we want on the report and sort them to make compression happier
+    unbalanced_je_lines
+        .select([
+            col("GL_Journal_ID"),
+            col("GL_Line_Number"),
+            col("GL_Effective_Date"),
+            col("GL_Account_Number"),
+            col("GL_Local_Amount"),
+        ])
+        .sort_by_exprs(
+            [col("GL_Journal_ID"), col("GL_Line_Number")],
+            [false; 2],
+            false,
+            false,
+        )
 }
 
 #[cfg(test)]

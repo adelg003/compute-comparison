@@ -49,16 +49,27 @@ pub fn completeness_test(gl: &LazyFrame, tb: &LazyFrame) -> LazyFrame {
         .alias("Difference"),
     );
 
-    // Filer for just columns needed and rename them
-    gl_tb_total_by_account.select([
-        col("TB_Fiscal_Year").alias("Fiscal_Year"),
-        col("TB_Business_Unit_Code").alias("Business_Unit_Code"),
-        col("TB_Account_Number").alias("Account_Number"),
-        col("TB_Amount_Opening_Balance").alias("Opening_Balance"),
-        col("GL_Local_Amount").alias("Activity"),
-        col("TB_Amount_Ending_Balance").alias("Ending_Balance"),
-        col("Difference"),
-    ])
+    // Filer for just columns needed, rename them, and sort to make compressions nice
+    gl_tb_total_by_account
+        .select([
+            col("TB_Business_Unit_Code").alias("Business_Unit_Code"),
+            col("TB_Fiscal_Year").alias("Fiscal_Year"),
+            col("TB_Account_Number").alias("Account_Number"),
+            col("TB_Amount_Opening_Balance").alias("Opening_Balance"),
+            col("GL_Local_Amount").alias("Activity"),
+            col("TB_Amount_Ending_Balance").alias("Ending_Balance"),
+            col("Difference"),
+        ])
+        .sort_by_exprs(
+            [
+                col("Business_Unit_Code"),
+                col("Fiscal_Year"),
+                col("Account_Number"),
+            ],
+            [false; 3],
+            false,
+            false,
+        )
 }
 
 #[cfg(test)]

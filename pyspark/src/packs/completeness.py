@@ -51,23 +51,31 @@ def completeness_test(gl: DataFrame, tb: DataFrame) -> DataFrame:
         ),
     )
 
-    # Filter just for the columns we want and cleanup column names
-    column_list = [
-        "TB_Fiscal_Year",
-        "TB_Business_Unit_Code",
-        "TB_Account_Number",
-        "TB_Amount_Opening_Balance",
-        "GL_Local_Amount",
-        "TB_Amount_Ending_Balance",
-        "Differance",
-    ]
+    # Filter just for the columns we want, cleanup column names, and sort for compression
     completness_report = (
-        gl_tb_by_account[column_list]
-        .withColumnRenamed("TB_Fiscal_Year", "Fiscal_Year")
+        gl_tb_by_account[
+            [
+                "TB_Business_Unit_Code",
+                "TB_Fiscal_Year",
+                "TB_Account_Number",
+                "TB_Amount_Opening_Balance",
+                "GL_Local_Amount",
+                "TB_Amount_Ending_Balance",
+                "Differance",
+            ]
+        ]
         .withColumnRenamed("TB_Business_Unit_Code", "Business_Unit_Code")
+        .withColumnRenamed("TB_Fiscal_Year", "Fiscal_Year")
         .withColumnRenamed("TB_Account_Number", "Account_Number")
         .withColumnRenamed("TB_Amount_Opening_Balance", "Opening_Balance")
         .withColumnRenamed("GL_Local_Amount", "Activity")
         .withColumnRenamed("TB_Amount_Ending_Balance", "Ending_Balance")
+        .sort(
+            [
+                "Business_Unit_Code",
+                "Fiscal_Year",
+                "Account_Number",
+            ]
+        )
     )
     return completness_report

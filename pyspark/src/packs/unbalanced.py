@@ -29,13 +29,19 @@ def unbalanced_test(gl: DataFrame) -> DataFrame:
         how="inner",
     )
 
-    # Filter just for the columns we want
-    columns = [
-        "GL_Journal_ID",
-        "GL_Effective_Date",
-        "GL_Line_Number",
-        "GL_Account_Number",
-        "GL_Local_Amount",
-    ]
-    unbalanced_lines_report = gl_unbalanced_lines[columns]
+    # Filter just for the columns we want and sort so results compress well
+    unbalanced_lines_report = gl_unbalanced_lines[
+        [
+            "GL_Journal_ID",
+            "GL_Line_Number",
+            "GL_Effective_Date",
+            "GL_Account_Number",
+            "GL_Local_Amount",
+        ]
+    ].sort(
+        [
+            "GL_Journal_ID",
+            "GL_Line_Number",
+        ]
+    )
     return unbalanced_lines_report
