@@ -27,14 +27,14 @@ def main():
 
     # Write results out
     print("Running Unbalanced test")
-    unbalanced_path = args.output.joinpath("unbalanced.parquet")
+    unbalanced_path = args.output.joinpath("unbalanced.parquet/")
     unbalanced.write.parquet(
         path=str(unbalanced_path),
         mode="overwrite",
     )
 
     print("Running Completeness test")
-    completeness_path = args.output.joinpath("completeness.parquet")
+    completeness_path = args.output.joinpath("completeness.parquet/")
     completeness.write.parquet(
         path=str(completeness_path),
         mode="overwrite",
